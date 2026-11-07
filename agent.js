@@ -74,6 +74,11 @@ async function handleMessage(sender, msg) {
     }
   }
 
+  // 1b. /start (Telegram) - sahi welcome message
+  if (!reply && (text === '/start' || text.startsWith('/start '))) {
+    reply = `नमस्ते! मैं आपका Tab जैसा असिस्टेंट हूँ।\n\nआप मुझसे ये सब करवा सकते हैं:\n• फ्लाइट / होटल ढूँढो और बुक करो\n• कुछ ऑर्डर करो\n• फोटो / PDF भेजो, मैं उससे फाइल बना दूँगा\n• मुझे याद दिलाओ - जैसे "कल सुबह 9 बजे याद दिलाओ"\n• नोट लिखो - जैसे "नोट लिखो: ..."\n\nपैसे वाले काम में मैं पहले कुल डिटेल दिखाकर आपकी हाँ लूँगा, उसके बाद ही आगे बढ़ूँगा।\n\nबताइए, आज क्या काम करवाना है?`;
+  }
+
   // 2. Naam yaad rakhna
   if (!reply && text.includes('mera naam')) {
     const name = raw.replace(/.*mera naam/i, '').replace(/hai\.?/i, '').trim();
