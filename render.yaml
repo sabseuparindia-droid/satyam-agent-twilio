@@ -1,0 +1,14 @@
+# Render deploy — Twilio WhatsApp Sandbox agent
+# Render.com → New → Web Service → is repo ko connect karo.
+# Start command neeche diya hai, isliye Meta wala server.js nahi, Twilio wala chalega.
+services:
+  - type: web
+    name: satyam-agent-twilio
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node twilio-server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production

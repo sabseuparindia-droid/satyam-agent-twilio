@@ -1,0 +1,1 @@
+{"description":"Tab jaisa personal WhatsApp agent - apne WhatsApp number par chalne wala, official WhatsApp Cloud API par","engines":{"node":">=18"},"main":"server.js","name":"tab-whatsapp-agent","scripts":{"start":"node server.js","test":"node test-simulate.js"},"version":"1.0.0"}
