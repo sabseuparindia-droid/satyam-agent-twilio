@@ -4,6 +4,8 @@
 // Webhook khud set ho jayega (server start hote hi): POST /telegram/webhook
 // Twilio webhook bhi isi server me hai: POST /twilio/whatsapp
 // Koi bahari library nahi. Sirf Node ki built-in cheezein.
+const fs = require('fs');
+const path = require('path');
 const http = require('http');
 const https = require('https');
 const querystring = require('querystring');
@@ -130,6 +132,19 @@ const server = http.createServer((req, res) => {
       return res.end(twimlReply(reply));
     });
     return;
+  }
+
+  // Queued kaam dekhna (video/app requests): GET /jobs
+  if (req.method === 'GET' && url.pathname === '/jobs') {
+    let jobs = [];
+    try {
+      const mem = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'memory.json'), 'utf8'));
+      for (const sender of Object.keys(mem)) {
+        for (const j of (mem[sender].jobs || [])) jobs.push({ sender, ...j });
+      }
+    } catch {}
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ jobs }));
   }
 
   // Test ke liye seedha POST: { "from": "919999999999", "text": "namaste" }

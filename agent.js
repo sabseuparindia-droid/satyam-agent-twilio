@@ -17,7 +17,8 @@ function saveJson(file, obj) {
 
 function getMemory(sender) {
   const all = loadJson(MEMORY_FILE, {});
-  if (!all[sender]) all[sender] = { history: [], notes: [], reminders: [], pending: null, name: null };
+  if (!all[sender]) all[sender] = { history: [], notes: [], reminders: [], pending: null, name: null, jobs: [] };
+  if (!all[sender].jobs) all[sender].jobs = [];
   return { all, mem: all[sender] };
 }
 function saveMemory(all) { saveJson(MEMORY_FILE, all); }
@@ -76,7 +77,7 @@ async function handleMessage(sender, msg) {
 
   // 1b. /start (Telegram) - sahi welcome message
   if (!reply && (text === '/start' || text.startsWith('/start '))) {
-    reply = `नमस्ते! मैं आपका Tab जैसा असिस्टेंट हूँ।\n\nआप मुझसे ये सब करवा सकते हैं:\n• फ्लाइट / होटल ढूँढो और बुक करो\n• कुछ ऑर्डर करो\n• फोटो / PDF भेजो, मैं उससे फाइल बना दूँगा\n• मुझे याद दिलाओ - जैसे "कल सुबह 9 बजे याद दिलाओ"\n• नोट लिखो - जैसे "नोट लिखो: ..."\n\nपैसे वाले काम में मैं पहले कुल डिटेल दिखाकर आपकी हाँ लूँगा, उसके बाद ही आगे बढ़ूँगा।\n\nबताइए, आज क्या काम करवाना है?`;
+    reply = `नमस्ते! मैं आपका Tab जैसा असिस्टेंट हूँ।\n\nआप मुझसे ये सब करवा सकते हैं:\n• फ्लाइट / होटल ढूँढो और बुक करो\n• कुछ ऑर्डर करो\n• फोटो / PDF भेजो, मैं उससे फाइल बना दूँगा\n• मुझे याद दिलाओ - जैसे "कल सुबह 9 बजे याद दिलाओ"\n• नोट लिखो - जैसे "नोट लिखो: ..."\n• वीडियो बनाओ / एडिट करो\n• ऐप बनाओ\n\nपैसे वाले काम में मैं पहले कुल डिटेल दिखाकर आपकी हाँ लूँगा, उसके बाद ही आगे बढ़ूँगा।\n\nबताइए, आज क्या काम करवाना है?`;
   }
 
   // 2. Naam yaad rakhna
@@ -87,7 +88,7 @@ async function handleMessage(sender, msg) {
 
   // 3. Madad
   if (!reply && (text.includes('madad') || text === 'help' || text.includes('kya kar sakte') || text.includes('kaise kaam'))) {
-    reply = `मैं आपका Tab जैसा असिस्टेंट हूँ। आप मुझे ऐसे मैसेज कर सकते हैं:\n• फ्लाइट / होटल ढूँढो और बुक करो\n• कुछ ऑर्डर करो\n• फोटो / PDF भेजो, मैं उससे फाइल बना दूँगा\n• मुझे याद दिलाओ - जैसे "कल सुबह 9 बजे याद दिलाओ"\n• नोट लिखो - जैसे "नोट लिखो: ..."\n\nपैसे वाले काम में मैं पहले कुल डिटेल दिखाकर आपकी हाँ लूँगा, उसके बाद ही आगे बढ़ूँगा।`;
+    reply = `मैं आपका Tab जैसा असिस्टेंट हूँ। आप मुझे ऐसे मैसेज कर सकते हैं:\n• फ्लाइट / होटल ढूँढो और बुक करो\n• कुछ ऑर्डर करो\n• फोटो / PDF भेजो, मैं उससे फाइल बना दूँगा\n• मुझे याद दिलाओ - जैसे "कल सुबह 9 बजे याद दिलाओ"\n• नोट लिखो - जैसे "नोट लिखो: ..."\n• वीडियो बनाओ / एडिट करो\n• ऐप बनाओ\n\nपैसे वाले काम में मैं पहले कुल डिटेल दिखाकर आपकी हाँ लूँगा, उसके बाद ही आगे बढ़ूँगा।`;
   }
 
   // 4. Reminder
@@ -109,6 +110,24 @@ async function handleMessage(sender, msg) {
   if (!reply && (text.includes('book karo') || text.includes('flight') || text.includes('hotel') || text.includes('order karo') || text.includes('kharido') || text.includes('pay karo') || text.includes('ticket'))) {
     mem.pending = raw;
     reply = `मैं ये काम करने से पहले पक्का कर रहा हूँ, ताकि गलती से पैसा न कटे:\n\nकाम: ${raw}\n\nक्या मैं इसी के साथ आगे बढ़ूँ? जवाब में सिर्फ "हाँ" या "नहीं" लिखिए।`;
+  }
+
+  // 6b. Video banao / edit karo - kaam note karke queue me daalo
+  if (!reply && text.includes('video') && (text.includes('banao') || text.includes('banado') || text.includes('edit') || text.includes('bana do'))) {
+    mem.jobs.push({ type: 'video', text: raw, time: new Date().toISOString(), status: 'queued' });
+    reply = `वीडियो का काम नोट कर लिया है: "${raw}"\n\nमैं इसे बना रहा हूँ। वीडियो बनने में थोड़ा समय लगता है, तैयार होते ही मैं इसी चैट में भेज दूँगा।`;
+  }
+
+  // 6c. App banao - kaam note karke queue me daalo
+  if (!reply && text.includes('app') && (text.includes('banao') || text.includes('banado') || text.includes('bana do'))) {
+    mem.jobs.push({ type: 'app', text: raw, time: new Date().toISOString(), status: 'queued' });
+    reply = `ऐप का काम नोट कर लिया है: "${raw}"\n\nमैं इसे बना रहा हूँ। तैयार होते ही मैं इसी चैट में भेज दूँगा। ऐप कैसा चाहिए, ये भी बता दीजिए - जैसे किस काम के लिए चाहिए।`;
+  }
+
+  // 6d. Mere pending kaam dikhao
+  if (!reply && (text.includes('mere kaam') || text.includes('pending kaam') || text.includes('mere jobs'))) {
+    const open = mem.jobs.filter(j => j.status === 'queued');
+    reply = open.length ? 'आपके चल रहे काम:\n• ' + open.map(j => `${j.type}: ${j.text}`).join('\n• ') : 'अभी कोई काम बाकी नहीं है।';
   }
 
   // 7. Photo / PDF / File
